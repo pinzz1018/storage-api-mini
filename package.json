@@ -1,0 +1,8 @@
+{
+  "name": "storage-api-mini",
+  "version": "1.0.0",
+  "description": "Storage API mini - BaaS sederhana dengan Netlify Functions + Supabase",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}
