@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Storage API — Test Console</title>
+<style>
+  :root {
+    --ink: #16181d;
+    --paper: #f6f5f2;
+    --panel: #ffffff;
+    --line: #dedad2;
+    --vault: #2b5f4c;
+    --vault-soft: #e7f0ec;
+    --amber: #c8791f;
+    --error: #b3432b;
+    --mono: 'SF Mono', 'JetBrains Mono', Consolas, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+  }
+  header {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  header .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--vault);
+    margin: 0 0 6px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header p {
+    margin: 6px 0 0;
+    color: #6b6b6b;
+    font-size: 14px;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--vault);
+    margin: 0 0 4px;
+    font-family: var(--mono);
+  }
+  .card .desc {
+    font-size: 13px;
+    color: #7a7a7a;
+    margin: 0 0 14px;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 12px 0 4px;
+    color: #444;
+  }
+  label:first-of-type { margin-top: 0; }
+  input, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    background: #fcfcfb;
+    color: var(--ink);
+  }
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--vault);
+  }
+  textarea { min-height: 70px; resize: vertical; }
+  button {
+    margin-top: 14px;
+    background: var(--vault);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button:hover { background: #234c3d; }
+  button:disabled { background: #a8a8a8; cursor: not-allowed; }
+  button.secondary {
+    background: transparent;
+    color: var(--vault);
+    border: 1px solid var(--vault);
+  }
+  button.secondary:hover { background: var(--vault-soft); }
+  .result {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result.ok { background: var(--vault-soft); border: 1px solid #b7d3c6; color: #1e4535; }
+  .result.err { background: #fbeae5; border: 1px solid #ecc3b6; color: var(--error); }
+  .global-key {
+    position: sticky;
+    top: 0;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 20px;
+    z-index: 10;
+  }
+  .global-key label { margin: 0 0 4px; }
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--vault-soft);
+    color: var(--vault);
+    margin-left: 8px;
+  }
+  .list-item {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .list-item:last-child { border-bottom: none; }
+  .list-item span:last-child { color: #9a9a9a; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Storage API mini</p>
+  <h1>Test Console</h1>
+  <p>Coba tiap endpoint langsung dari sini sebelum dipakai di project kamu.</p>
+</header>
+
+<div class="global-key">
+  <label for="globalApiKey">API Key aktif <span class="badge">dipakai di semua request</span></label>
+  <input type="text" id="globalApiKey" placeholder="sk_xxxxxxxxxxxxxxxx" autocomplete="off">
+</div>
+
+<main>
+
+  <!-- REGISTER -->
+  <section class="card">
+    <h2>1. Register</h2>
+    <p class="desc">Belum punya API key? Buat baru di sini. Key hanya ditampilkan sekali.</p>
+    <label for="regName">Nama pemilik / project</label>
+    <input type="text" id="regName" placeholder="misal: project-tugas-akhir">
+    <button onclick="doRegister()">Generate API Key</button>
+    <div class="result" id="regResult"></div>
+  </section>
+
+  <!-- STORE -->
+  <section class="card">
+    <h2>2. Store</h2>
+    <p class="desc">Simpan data. Kalau key sudah ada, datanya akan diperbarui.</p>
+    <label for="storeKey">Key</label>
+    <input type="text" id="storeKey" placeholder="misal: catatan-1">
+    <label for="storeValue">Value (boleh teks biasa atau JSON)</label>
+    <textarea id="storeValue" placeholder='misal: "halo dunia" atau {"nama":"budi","umur":20}'></textarea>
+    <button onclick="doStore()">Simpan</button>
+    <div class="result" id="storeResult"></div>
+  </section>
+
+  <!-- GET -->
+  <section class="card">
+    <h2>3. Get</h2>
+    <p class="desc">Ambil data berdasarkan key.</p>
+    <label for="getKey">Key</label>
+    <input type="text" id="getKey" placeholder="misal: catatan-1">
+    <button onclick="doGet()">Ambil Data</button>
+    <div class="result" id="getResult"></div>
+  </section>
+
+  <!-- LIST -->
+  <section class="card">
+    <h2>4. List</h2>
+    <p class="desc">Lihat semua key yang sudah kamu simpan.</p>
+    <button onclick="doList()">Lihat Semua Key</button>
+    <div class="result" id="listResult"></div>
+  </section>
+
+  <!-- DELETE -->
+  <section class="card">
+    <h2>5. Delete</h2>
+    <p class="desc">Hapus data berdasarkan key.</p>
+    <label for="delKey">Key</label>
+    <input type="text" id="delKey" placeholder="misal: catatan-1">
+    <button class="secondary" onclick="doDelete()">Hapus Data</button>
+    <div class="result" id="delResult"></div>
+  </section>
+
+</main>
+
+<script>
+  const BASE = '/api';
+
+  function getKeyHeader() {
+    const key = document.getElementById('globalApiKey').value.trim();
+    return key;
+  }
+
+  function showResult(elId, ok, data) {
+    const el = document.getElementById(elId);
+    el.className = 'result show ' + (ok ? 'ok' : 'err');
+    el.textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function doRegister() {
+    const owner_name = document.getElementById('regName').value.trim();
+    if (!owner_name) return showResult('regResult', false, { error: 'Isi nama dulu' });
+    try {
+      const res = await fetch(`${BASE}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ owner_name })
+      });
+      const data = await res.json();
+      showResult('regResult', res.ok, data);
+      if (res.ok && data.api_key) {
+        document.getElementById('globalApiKey').value = data.api_key;
+      }
+    } catch (err) {
+      showResult('regResult', false, { error: 'Gagal terhubung ke server', detail: err.message });
+    }
+  }
+
+  async function doStore() {
+    const apiKey = getKeyHeader();
+    if (!apiKey) return showResult('storeResult', false, { error: 'Isi API Key aktif dulu di atas' });
+    const key = document.getElementById('storeKey').value.trim();
+    let rawValue = document.getElementById('storeValue').value;
+    let value;
+    try {
+      value = JSON.parse(rawValue);
+    } catch {
+      value = rawValue; // treat as plain string kalau bukan JSON valid
+    }
+    try {
+      const res = await fetch(`${BASE}/store`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        body: JSON.stringify({ key, value })
+      });
+      const data = await res.json();
+      showResult('storeResult', res.ok, data);
+    } catch (err) {
+      showResult('storeResult', false, { error: 'Gagal terhubung ke server', detail: err.message });
+    }
+  }
+
+  async function doGet() {
+    const apiKey = getKeyHeader();
+    if (!apiKey) return showResult('getResult', false, { error: 'Isi API Key aktif dulu di atas' });
+    const key = document.getElementById('getKey').value.trim();
+    try {
+      const res = await fetch(`${BASE}/get?key=${encodeURIComponent(key)}`, {
+        headers: { 'x-api-key': apiKey }
+      });
+      const data = await res.json();
+      showResult('getResult', res.ok, data);
+    } catch (err) {
+      showResult('getResult', false, { error: 'Gagal terhubung ke server', detail: err.message });
+    }
+  }
+
+  async function doList() {
+    const apiKey = getKeyHeader();
+    if (!apiKey) return showResult('listResult', false, { error: 'Isi API Key aktif dulu di atas' });
+    try {
+      const res = await fetch(`${BASE}/list`, {
+        headers: { 'x-api-key': apiKey }
+      });
+      const data = await res.json();
+      showResult('listResult', res.ok, data);
+    } catch (err) {
+      showResult('listResult', false, { error: 'Gagal terhubung ke server', detail: err.message });
+    }
+  }
+
+  async function doDelete() {
+    const apiKey = getKeyHeader();
+    if (!apiKey) return showResult('delResult', false, { error: 'Isi API Key aktif dulu di atas' });
+    const key = document.getElementById('delKey').value.trim();
+    try {
+      const res = await fetch(`${BASE}/delete?key=${encodeURIComponent(key)}`, {
+        method: 'DELETE',
+        headers: { 'x-api-key': apiKey }
+      });
+      const data = await res.json();
+      showResult('delResult', res.ok, data);
+    } catch (err) {
+      showResult('delResult', false, { error: 'Gagal terhubung ke server', detail: err.message });
+    }
+  }
+</script>
+
+</body>
+</html>
